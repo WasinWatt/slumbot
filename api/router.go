@@ -61,6 +61,11 @@ func (h *Handler) lineRequestHandler() http.Handler {
 					return
 				}
 
+				// trolling
+				if userID == "U166bda98c624c53f108ab5cc446c0b04" {
+					replyMessage(h.Client, replyID, "บ่นไรแจน")
+				}
+
 				username := res.DisplayName
 
 				switch message := event.Message.(type) {
