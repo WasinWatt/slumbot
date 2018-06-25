@@ -89,6 +89,9 @@ func (h *Handler) lineRequestHandler() http.Handler {
 func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string, userID string, username string) error {
 	var words []string
 	words = strings.SplitN(message.Text, " ", 2)
+	if len(words) >= 2 {
+		words[1] = strings.TrimSpace(words[1])
+	}
 
 	command := strings.ToLower(words[0])
 	u, err := h.controller.GetUser(userID)
@@ -108,6 +111,7 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 			replyDefaultMessage(h.Client, replyID)
 			return nil
 		}
+
 		err := h.controller.CreateRoom(words[1], userID, username)
 		if err != nil {
 			log.Println(err)
