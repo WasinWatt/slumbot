@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 
 	"github.com/WasinWatt/slumbot/config"
 	"github.com/WasinWatt/slumbot/postgres"
@@ -58,8 +60,27 @@ func main() {
 		addr = "3000"
 	}
 
+	server := http.Server{
+		Addr:    ":3000",
+		Handler: mux,
+	}
+
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Kill, os.Interrupt)
+
+		<-sig
+		log.Println("Catch signal ... Shutting down the server")
+		err := server.Shutdown(context.Background())
+		if err != nil {
+			log.Println("Fail while shutting down the server")
+		} else {
+			log.Println("Server stopped")
+		}
+	}()
+
 	log.Println("Listening on port: " + addr)
-	http.ListenAndServe(":"+addr, mux)
+	server.ListenAndServe()
 
 }
 
