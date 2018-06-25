@@ -46,20 +46,22 @@ func (h *Handler) lineRequestHandler() http.Handler {
 		for _, event := range events {
 			if event.Type == linebot.EventTypeMessage {
 				userID := event.Source.UserID
-				log.Println(userID)
-				res, err := h.Client.GetProfile(userID).Do()
-				if err != nil {
-					log.Println(err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				username := res.DisplayName
 				groupID := event.Source.GroupID
 				replyID := userID
 				if groupID != "" {
 					replyID = groupID
 				}
+
+				log.Println(userID)
+				res, err := h.Client.GetProfile(userID).Do()
+				if err != nil {
+					replyMessage(h.Client, replyID, "นายๆ แอดเพื่อนเราก่อนถึงจะใช้ได้นะ")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				username := res.DisplayName
+
 				switch message := event.Message.(type) {
 				case *linebot.TextMessage:
 					err := h.handleTextMessage(message, replyID, userID, username)
