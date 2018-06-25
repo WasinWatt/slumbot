@@ -60,8 +60,8 @@ func main() {
 		addr = "3000"
 	}
 
-	server := http.Server{
-		Addr:    ":3000",
+	server := &http.Server{
+		Addr:    ":" + addr,
 		Handler: mux,
 	}
 
