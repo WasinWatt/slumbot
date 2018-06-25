@@ -80,7 +80,7 @@ func (h *Handler) lineRequestHandler() http.Handler {
 
 func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string, userID string, username string) error {
 	var words []string
-	words = strings.Split(message.Text, " ")
+	words = strings.SplitN(message.Text, " ", 2)
 
 	command := strings.ToLower(words[0])
 	u, err := h.controller.GetUser(userID)
