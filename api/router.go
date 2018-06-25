@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/WasinWatt/slumbot/service"
 	"github.com/WasinWatt/slumbot/user"
@@ -205,6 +206,12 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 	}
 	if command == "สวัสดี" || command == "hello" || command == "หวัดดี" {
 		replyDefaultMessage(h.Client, replyID)
+	}
+
+	if command == "ปปขาวหรือไม่" {
+		replyMessage(h.Client, replyID, "โคด")
+		time.Sleep(3 * time.Second)
+		replyMessage(h.Client, replyID, "ดำ")
 	}
 
 	return nil
