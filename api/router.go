@@ -152,7 +152,7 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 		return nil
 	}
 
-	if command == "leave" || command == "quit" || command == "เท" {
+	if command == "leave" || command == "เทตี้" || command == "เท" {
 		if len(words) < 2 {
 			replyDefaultMessage(h.Client, replyID)
 			return nil
@@ -220,9 +220,22 @@ func replyInternalErrorMessage(client *linebot.Client, replyID string, err error
 }
 
 func replyDefaultMessage(client *linebot.Client, replyID string) {
-	message := `สวัสดี เราสลัมเอง ไม่ได้ทำตัวนักเลงแต่ธรรมชาติมันจัดให้เอง
-	อัยย้ะ เช้ย เช้ย ... อัยย้ะ เช้ย เช้ย ... เช้ยอะไร
-	เช้ยเมยย ~ ยังไม่ได้นอน ~`
+	message := `คุณสลัมสวัสดี โจ้ว โจ้ว ตอนนี้คุณสลัมมีความสามารถดังนี้
+	
+	1. อยากเปิดตี้
+	- พิม "เปิดตี้/เปิดโครง" วรรคแล้วตามด้วยชื่อโครงน๊ะจ๊ะ
+	ex: เปิดตี้ กินแซลมอน
+	2. อยากจอยตี้
+	- พิม "จอย/ไป" วรรคแล้วตามด้วยชื่อโครงเหมือนเดิม
+	ex: จอย กินแซลมอน
+	3. ดูรายชื่อคนไป
+	- พิม "รายชื่อ/ใครไปบ้าง" วรรคแล้วตามด้วยชื่อโครง
+	ex: รายชื่อ กินแซลมอน
+	4. เทโครง (คุณสลัมไม่แนะนำ)
+	- พิม "เท" วรรคแล้วตามด้วยชื่อโครง
+	ex: เท กินแซลมอน
+	
+	อย่าลืมแอดเพื่อนคุณสลัมก่อนใช้งาน ขอบคุณ โจ้ว โจ้ว`
 	replySticker(client, replyID, "2", "520")
 	replyMessage(client, replyID, message)
 }
