@@ -62,8 +62,8 @@ func (h *Handler) lineRequestHandler() http.Handler {
 				}
 
 				// trolling
-				if userID == "Uedff19aceb914c75b5ddfb6a3d6ed37a" {
-					replyMessage(h.Client, replyID, "บ่นไรอม")
+				if userID == "U81455a6c0ae550b54ee5fe5bfa69ef3b" {
+					replyMessage(h.Client, replyID, "เงียบหน่อยกระต๊อบ")
 				}
 
 				username := res.DisplayName
