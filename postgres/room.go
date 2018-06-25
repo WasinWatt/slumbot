@@ -21,7 +21,7 @@ func (r *Repository) IsRoomExists(db sqldb.Queryer, roomID string) (exist bool, 
 		return false, err
 	}
 
-	return true, nil
+	return exist, nil
 }
 
 // RegisterRoom registers a room

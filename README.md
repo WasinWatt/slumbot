@@ -1,14 +1,7 @@
-# Undercover game bot
+# Slum bot
 
-This is a "undercover" game bot implemented using LINE API.
-The purpose is to help controlling the flow of the game easier and simpler.
-
-### CONTENTS
-
-* `api/` - contain api hanlder for all the requests
-* `room/` - contain everything associated with room
-* `user/` - contain everything associated with user
-* `vocab/` - contain everything associated with vocab
+This is a Slumclub bot implemented using LINE API.
+The purpose is to help controlling the messages and announcements in the club.
 
 ### Prerequisite
 
@@ -26,7 +19,7 @@ go install -v
 ### Usage
 
 ```
-gamebot
+slumbot
 ```
 or
 
@@ -37,7 +30,3 @@ go run main.go
 
 ### Author
 * Wasin Watthanasrisong (github: [WasinWatt](https://github.com/wasinwatt))
-
-[metadata.heroku]
-  root-package = "github.com/WasinWatt/slumbot"
-  install = ["./..."]
