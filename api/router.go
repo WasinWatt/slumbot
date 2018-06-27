@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/WasinWatt/slumbot/cache"
+
 	"github.com/WasinWatt/slumbot/service"
 	"github.com/WasinWatt/slumbot/user"
 	"github.com/line/line-bot-sdk-go/linebot"
@@ -18,14 +20,16 @@ type Handler struct {
 	Client     *linebot.Client
 	db         *sql.DB
 	controller *service.Controller
+	memcache   cache.Cacher
 }
 
 // NewHandler creates new hanlder
-func NewHandler(lineClient *linebot.Client, db *sql.DB, controller *service.Controller) *Handler {
+func NewHandler(lineClient *linebot.Client, db *sql.DB, controller *service.Controller, c cache.Cacher) *Handler {
 	return &Handler{
 		Client:     lineClient,
 		db:         db,
 		controller: controller,
+		memcache:   c,
 	}
 }
 
@@ -61,11 +65,6 @@ func (h *Handler) lineRequestHandler() http.Handler {
 					return
 				}
 
-				// trolling
-				if userID == "U81455a6c0ae550b54ee5fe5bfa69ef3b" {
-					replyMessage(h.Client, replyID, "เงียบหน่อยกระต๊อบ")
-				}
-
 				username := res.DisplayName
 
 				switch message := event.Message.(type) {
@@ -94,16 +93,30 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 	}
 
 	command := strings.ToLower(words[0])
-	u, err := h.controller.GetUser(userID)
-	if err == sql.ErrNoRows {
-		u = &user.User{
-			ID:         userID,
-			Name:       username,
-			PenaltyNum: 0,
+
+	cachename, ok := h.memcache.Get(userID)
+	if !ok {
+		u, err := h.controller.GetUser(userID)
+		if err == sql.ErrNoRows {
+			u = &user.User{
+				ID:         userID,
+				Name:       username,
+				PenaltyNum: 0,
+			}
+			err := h.controller.CreateUser(u)
+			if err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
 		}
-		h.controller.CreateUser(u)
-	} else if err != nil {
-		return err
+
+		h.memcache.Set(userID, username)
+	} else {
+		if cachename != username {
+			h.controller.UpdateUsername(userID, username)
+			h.memcache.Set(userID, username)
+		}
 	}
 
 	if command == "เปิดตี้" || command == "เปิดโครง" || command == "create" {
@@ -112,7 +125,7 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 			return nil
 		}
 
-		err := h.controller.CreateRoom(words[1], userID, username)
+		err := h.controller.CreateRoom(words[1], userID)
 		if err != nil {
 			log.Println(err)
 			return err
@@ -142,7 +155,7 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 			return nil
 		}
 
-		err = h.controller.Join(u, words[1])
+		err := h.controller.Join(userID, words[1])
 		if err != nil {
 			return err
 		}
@@ -170,12 +183,12 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 			return nil
 		}
 
-		penalty, err := h.controller.Leave(u, words[1])
+		penalty, err := h.controller.Leave(userID, words[1])
 		if err != nil {
 			return err
 		}
 
-		reply := "สายเทนะเรา " + u.Name + "\n" + "มันเทไปแล้ว " + strconv.Itoa(penalty) + " ครั้ง !!"
+		reply := "สายเทนะเรา " + username + "\n" + "มันเทไปแล้ว " + strconv.Itoa(penalty) + " ครั้ง !!"
 
 		replyMessage(h.Client, replyID, reply)
 		replySticker(h.Client, replyID, "2", "24")
@@ -244,6 +257,12 @@ func replyInternalErrorMessage(client *linebot.Client, replyID string, err error
 	}
 	if err == service.ErrRoomNotFound {
 		message = `ตี้นี้ยังไม่ได้เปิดเลยนะ งงจัง`
+	}
+	if err == service.ErrDuplicateRoom {
+		message = `ห้ามเปิดตี้ซ้ำนะตัวเอง`
+	}
+	if err == service.ErrUserNotInRoom {
+		message = `มึงยังไม่ได้อยู่ในตี้เลย เทสะเปะสะปะนะเรา`
 	}
 	replyMessage(client, replyID, message)
 }

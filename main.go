@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/WasinWatt/slumbot/cache"
 	"github.com/WasinWatt/slumbot/config"
 	"github.com/WasinWatt/slumbot/postgres"
 	"github.com/WasinWatt/slumbot/service"
@@ -30,13 +31,16 @@ func main() {
 	must(err)
 
 	log.Println("Connected to DB ...")
+
+	// cache initialize
+	memcache := cache.New()
 	// Repo initialize
-	repo := postgres.New()
+	repo := postgres.New(memcache)
 
 	// Service controller initialize
 	controller := service.New(db, repo)
 
-	apiHandler := api.NewHandler(bot, db, controller)
+	apiHandler := api.NewHandler(bot, db, controller, memcache)
 
 	mux := http.NewServeMux()
 

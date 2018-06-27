@@ -1,7 +1,11 @@
 package postgres
 
-func New() *Repository {
-	return &Repository{}
+import "github.com/WasinWatt/slumbot/cache"
+
+func New(c cache.Cacher) *Repository {
+	return &Repository{c}
 }
 
-type Repository struct{}
+type Repository struct {
+	memcache cache.Cacher
+}

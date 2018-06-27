@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/WasinWatt/slumbot/sqldb"
 	"github.com/WasinWatt/slumbot/user"
@@ -19,6 +18,21 @@ func (r *Repository) RegisterUser(db sqldb.Queryer, u *user.User) error {
 		)
 		`, u.ID, u.Name,
 	)
+	return err
+}
+
+// UpdateNameByID updates user's name
+func (r *Repository) UpdateNameByID(db sqldb.Queryer, userID string, username string) error {
+	_, err := db.Exec(`
+		update
+			users
+		set
+			name = $1
+		where
+			user_id = $2
+		`, username, userID,
+	)
+
 	return err
 }
 
@@ -47,6 +61,7 @@ func (r *Repository) IsUserExists(db sqldb.Queryer, userID string) (exist bool, 
 
 // FindUsernamesByRoomID finds users by room id
 func (r *Repository) FindUsernamesByRoomID(db sqldb.Queryer, roomID string) (members []string, err error) {
+	var userIDs []string
 	err = db.QueryRow(`
 		select
 			members
@@ -55,11 +70,32 @@ func (r *Repository) FindUsernamesByRoomID(db sqldb.Queryer, roomID string) (mem
 		where
 			room_id = $1
 		`, roomID,
-	).Scan(pq.Array(&members))
+	).Scan(pq.Array(&userIDs))
 
 	if err != nil {
-		log.Println("FUCK")
 		return []string{}, err
+	}
+
+	members = make([]string, len(userIDs))
+	for i, id := range userIDs {
+		username, ok := r.memcache.Get(id)
+		if !ok {
+			err := db.QueryRow(`
+				select
+					name
+				from
+					users
+				where
+					user_id = $1
+				`, id,
+			).Scan(&username)
+
+			if err != nil {
+				return []string{}, err
+			}
+		}
+		str, _ := username.(string)
+		members[i] = str
 	}
 
 	return members, nil
@@ -85,8 +121,8 @@ func (r *Repository) FindUserByID(db sqldb.Queryer, userID string) (*user.User, 
 	return &x, nil
 }
 
-// RemoveMemberByUsername deletes member name in room
-func (r *Repository) RemoveMemberByUsername(db sqldb.Queryer, username string, roomID string) error {
+// RemoveMemberByUserID deletes member id in room
+func (r *Repository) RemoveMemberByUserID(db sqldb.Queryer, userID string, roomID string) error {
 	_, err := db.Exec(`
 		update 
 			rooms
@@ -94,7 +130,7 @@ func (r *Repository) RemoveMemberByUsername(db sqldb.Queryer, username string, r
 			members = array_remove(members, $1)
 		where
 			room_id = $2
-		`, username, roomID,
+		`, userID, roomID,
 	)
 
 	if err != nil {
@@ -104,8 +140,8 @@ func (r *Repository) RemoveMemberByUsername(db sqldb.Queryer, username string, r
 	return nil
 }
 
-// IsInRoom checks if username is already in the room
-func (r *Repository) IsInRoom(db sqldb.Queryer, username string, roomID string) (duplicate bool, err error) {
+// IsInRoom checks if user id is already in the room
+func (r *Repository) IsInRoom(db sqldb.Queryer, userID string, roomID string) (duplicate bool, err error) {
 	err = db.QueryRow(`
 		select
 			count(*) > 0
@@ -113,7 +149,7 @@ func (r *Repository) IsInRoom(db sqldb.Queryer, username string, roomID string) 
 			rooms
 		where
 			room_id = $1 and $2 = any(members)	
-		`, roomID, username,
+		`, roomID, userID,
 	).Scan(&duplicate)
 
 	if err == sql.ErrNoRows {
@@ -128,7 +164,7 @@ func (r *Repository) IsInRoom(db sqldb.Queryer, username string, roomID string) 
 }
 
 // AddToRoom updates room's member
-func (r *Repository) AddToRoom(db sqldb.Queryer, username string, roomID string) error {
+func (r *Repository) AddToRoom(db sqldb.Queryer, userID string, roomID string) error {
 	_, err := db.Exec(`
 		update 
 			rooms
@@ -136,7 +172,7 @@ func (r *Repository) AddToRoom(db sqldb.Queryer, username string, roomID string)
 			members = array_append(members, $1)
 		where
 			room_id = $2
-		`, username, roomID,
+		`, userID, roomID,
 	)
 
 	if err != nil {

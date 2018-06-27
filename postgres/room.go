@@ -25,14 +25,14 @@ func (r *Repository) IsRoomExists(db sqldb.Queryer, roomID string) (exist bool, 
 }
 
 // RegisterRoom registers a room
-func (r *Repository) RegisterRoom(db sqldb.Queryer, roomID string, userID string, username string) error {
+func (r *Repository) RegisterRoom(db sqldb.Queryer, roomID string, userID string) error {
 	_, err := db.Exec(`
 			insert into rooms (
 				room_id, owner_id, members
 			) values (
 				$1, $2, $3
 			)
-		`, roomID, userID, pq.Array([]string{username}),
+		`, roomID, userID, pq.Array([]string{userID}),
 	)
 
 	return err
