@@ -93,6 +93,7 @@ func (r *Repository) FindUsernamesByRoomID(db sqldb.Queryer, roomID string) (mem
 			if err != nil {
 				return []string{}, err
 			}
+			r.memcache.Set(id, username)
 		}
 		str, _ := username.(string)
 		members[i] = str
