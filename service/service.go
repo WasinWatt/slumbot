@@ -11,7 +11,8 @@ import (
 var (
 	ErrDuplicateUserInRoom = errors.New("api/join: user already in the room")
 	ErrRoomNotFound        = errors.New("api: room not found")
-	ErrUserNotFound        = errors.New("api: user not found")
+	ErrDuplicateRoom       = errors.New("api: room already exists")
+	ErrUserNotInRoom       = errors.New("api: user not in room")
 )
 
 // New creates new service controller

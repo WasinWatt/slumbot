@@ -16,8 +16,18 @@ func (s *Controller) CreateUser(u *user.User) error {
 	return nil
 }
 
+// UpdateUsername updates user's username
+func (s *Controller) UpdateUsername(userID string, username string) error {
+	err := s.repo.UpdateNameByID(s.db, userID, username)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Join joins user to the room
-func (s *Controller) Join(u *user.User, roomID string) error {
+func (s *Controller) Join(userID string, roomID string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -34,7 +44,7 @@ func (s *Controller) Join(u *user.User, roomID string) error {
 		return ErrRoomNotFound
 	}
 
-	duplicate, err := s.repo.IsInRoom(tx, u.Name, roomID)
+	duplicate, err := s.repo.IsInRoom(tx, userID, roomID)
 	if duplicate {
 		return ErrDuplicateUserInRoom
 	}
@@ -42,7 +52,7 @@ func (s *Controller) Join(u *user.User, roomID string) error {
 		return err
 	}
 
-	err = s.repo.AddToRoom(tx, u.Name, roomID)
+	err = s.repo.AddToRoom(tx, userID, roomID)
 	if err != nil {
 		return err
 	}
@@ -56,28 +66,28 @@ func (s *Controller) Join(u *user.User, roomID string) error {
 }
 
 // Leave remove user from the database
-func (s *Controller) Leave(u *user.User, roomID string) (int, error) {
+func (s *Controller) Leave(userID string, roomID string) (int, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return 0, err
 	}
 	defer tx.Rollback()
 
-	duplicate, err := s.repo.IsInRoom(tx, u.Name, roomID)
+	duplicate, err := s.repo.IsInRoom(tx, userID, roomID)
 	if !duplicate {
-		return 0, ErrUserNotFound
+		return 0, ErrUserNotInRoom
 	}
 
 	if err != nil {
 		return 0, err
 	}
 
-	err = s.repo.RemoveMemberByUsername(tx, u.Name, roomID)
+	err = s.repo.RemoveMemberByUserID(tx, userID, roomID)
 	if err != nil {
 		return 0, err
 	}
 
-	penalty, err := s.repo.AddPenalty(tx, u.ID)
+	penalty, err := s.repo.AddPenalty(tx, userID)
 	if err != nil {
 		return 0, err
 	}
