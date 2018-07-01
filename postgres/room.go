@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/WasinWatt/slumbot/room"
 	"github.com/WasinWatt/slumbot/sqldb"
 	"github.com/lib/pq"
 )
@@ -47,4 +48,28 @@ func (r *Repository) RemoveRoomByID(db sqldb.Queryer, roomID string) error {
 	)
 
 	return err
+}
+
+// FindAllRooms finds all rooms
+func (r *Repository) FindAllRooms(db sqldb.Queryer) ([]*room.Room, error) {
+	rows, err := db.Query(`
+			select room_id, owner_id, members from rooms
+		`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	rooms := make([]*room.Room, 0)
+	for rows.Next() {
+		var r room.Room
+		err := rows.Scan(&r.ID, &r.OwnerID, pq.Array(&r.Members))
+		if err != nil {
+			return nil, err
+		}
+
+		rooms = append(rooms, &r)
+	}
+	return rooms, nil
 }

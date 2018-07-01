@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/WasinWatt/slumbot/cache"
 
@@ -60,7 +59,7 @@ func (h *Handler) lineRequestHandler() http.Handler {
 				log.Println(userID)
 				res, err := h.Client.GetProfile(userID).Do()
 				if err != nil {
-					replyMessage(h.Client, replyID, "นายๆ แอดเพื่อนเราก่อนถึงจะใช้ได้นะ")
+					// replyMessage(h.Client, replyID, "นายๆ แอดเพื่อนเราก่อนถึงจะใช้ได้นะ")
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
@@ -201,18 +200,6 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 			return nil
 		}
 
-		u, err := h.controller.GetUser(userID)
-		if err == sql.ErrNoRows {
-			u = &user.User{
-				ID:         userID,
-				Name:       username,
-				PenaltyNum: 0,
-			}
-			h.controller.CreateUser(u)
-		} else if err != nil {
-			return err
-		}
-
 		usernames, err := h.controller.GetAllUsernamesByRoomID(words[1])
 		if err != nil {
 			return err
@@ -226,14 +213,40 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 
 		return nil
 	}
-	if command == "สวัสดี" || command == "hello" || command == "หวัดดี" {
-		replyDefaultMessage(h.Client, replyID)
+
+	if command == "จบตี้" || command == "ปิดตี้" {
+		if len(words) < 2 {
+			replyDefaultMessage(h.Client, replyID)
+			return nil
+		}
+
+		err := h.controller.DeleteRoom(words[1], userID)
+		if err != nil {
+			return err
+		}
+
+		reply := "ตี้ " + words[1] + " ปิดแล้วว T.T\nเจอกันตี้หน้านะทุกคนนน ไว้มาเจอคุณสลัมอีกน้าา ~"
+		replyMessage(h.Client, replyID, reply)
+		replySticker(h.Client, replyID, "1", "114")
+
 	}
 
-	if command == "ปปขาวหรือไม่" {
-		replyMessage(h.Client, replyID, "โคด")
-		time.Sleep(3 * time.Second)
-		replyMessage(h.Client, replyID, "ดำ")
+	if command == "รายชื่อตี้" || command == "รายชื่อโครง" || command == "มีตี้ไรบ้าง" {
+		rooms, err := h.controller.ListRoomIDs()
+		if err != nil {
+			return err
+		}
+
+		reply := "รายชื่อโครงที่เปิดอยู่ตอนนี้ ~\n"
+		for i, r := range rooms {
+			reply += strconv.Itoa(i+1) + ". " + r + "\n"
+		}
+
+		replyMessage(h.Client, replyID, reply)
+		return nil
+	}
+	if command == "สวัสดี" || command == "hello" || command == "หวัดดี" {
+		replyDefaultMessage(h.Client, replyID)
 	}
 
 	if command == "จิงมั้ยคุณสลัม" || command == "จิงไหมคุนสลัม" || command == "จิงมั้ยคุนสลัม" || command == "จิงไหมคุณสลัม" {
@@ -264,6 +277,9 @@ func replyInternalErrorMessage(client *linebot.Client, replyID string, err error
 	if err == service.ErrUserNotInRoom {
 		message = `มึงยังไม่ได้อยู่ในตี้เลย เทสะเปะสะปะนะเรา`
 	}
+	if err == service.ErrUnAuthorized {
+		message = `คนเปิดตี้ หรือ adminเท่านั้นที่ปิดตี้ได้นะ เป็นเด็กเป็นเล็กอย่าเพิ่งซนนะ`
+	}
 	replyMessage(client, replyID, message)
 }
 
@@ -271,20 +287,30 @@ func replyDefaultMessage(client *linebot.Client, replyID string) {
 	message := `คุณสลัมสวัสดี โจ้ว โจ้ว ตอนนี้คุณสลัมมีความสามารถดังนี้
 	
 	1. อยากเปิดตี้
-	- พิม "เปิดตี้/เปิดโครง" วรรคแล้วตามด้วยชื่อโครงน๊ะจ๊ะ
+	- พิม "เปิดตี้/เปิดโครง" วรรคแล้วตามด้วยชื่อตี้น๊ะจ๊ะ
 	ex: เปิดตี้ กินแซลมอน
+
 	2. อยากจอยตี้
-	- พิม "จอย/ไป" วรรคแล้วตามด้วยชื่อโครงเหมือนเดิม
+	- พิม "จอย/ไป" วรรคแล้วตามด้วยชื่อตี้เหมือนเดิม
 	ex: จอย กินแซลมอน
+
 	3. ดูรายชื่อคนไป
-	- พิม "รายชื่อ/ใครไปบ้าง" วรรคแล้วตามด้วยชื่อโครง
+	- พิม "รายชื่อ/ใครไปบ้าง" วรรคแล้วตามด้วยชื่อตี้
 	ex: รายชื่อ กินแซลมอน
+
 	4. เทโครง (คุณสลัมไม่แนะนำ)
-	- พิม "เท" วรรคแล้วตามด้วยชื่อโครง
+	- พิม "เท" วรรคแล้วตามด้วยชื่อตี้
 	ex: เท กินแซลมอน
+
+	5. ดูรายชื่อตี้ที่เปิดอยู่
+	- พิม "รายชื่อตี้/มีตี้ไรบ้าง"
+
+	6. ปิดตี้
+	- พิม "จบตี้/ปิดตี้" วรรคแล้วตามด้วยชื่อตี้
+	ex: ปิดตี้ กินแซลมอน
 	
 	อย่าลืมแอดเพื่อนคุณสลัมก่อนใช้งาน ขอบคุณ โจ้ว โจ้ว`
-	replySticker(client, replyID, "2", "520")
+	replySticker(client, replyID, "3", "233")
 	replyMessage(client, replyID, message)
 }
 

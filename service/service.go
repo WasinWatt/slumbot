@@ -13,6 +13,7 @@ var (
 	ErrRoomNotFound        = errors.New("api: room not found")
 	ErrDuplicateRoom       = errors.New("api: room already exists")
 	ErrUserNotInRoom       = errors.New("api: user not in room")
+	ErrUnAuthorized        = errors.New("api: user unauthorized")
 )
 
 // New creates new service controller

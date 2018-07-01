@@ -199,3 +199,49 @@ func (r *Repository) AddPenalty(db sqldb.Queryer, userID string) (num int, err e
 
 	return
 }
+
+// IsOwner checks the ownership of user
+func (r *Repository) IsOwner(db sqldb.Queryer, roomID, userID string) (boolean bool, err error) {
+	err = db.QueryRow(`
+		select
+			count(*) > 0
+		from
+			rooms
+		where
+			room_id = $1 and owner_id = $2
+		`, roomID, userID,
+	).Scan(&boolean)
+
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return
+}
+
+// IsAdmin checks if user is an admin
+func (r *Repository) IsAdmin(db sqldb.Queryer, userID string) (boolean bool, err error) {
+	err = db.QueryRow(`
+		select
+			count(*) > 0
+		from
+			users
+		where
+			user_id = $1 and is_admin = true
+		`, userID,
+	).Scan(&boolean)
+
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return
+}
