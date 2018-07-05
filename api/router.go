@@ -59,7 +59,7 @@ func (h *Handler) lineRequestHandler() http.Handler {
 				log.Println(userID)
 				res, err := h.Client.GetProfile(userID).Do()
 				if err != nil {
-					// replyMessage(h.Client, replyID, "นายๆ แอดเพื่อนเราก่อนถึงจะใช้ได้นะ")
+					replyMessage(h.Client, replyID, "แอดเพื่อนคุณสลัมก่อนถึงจะใช้งานได้นะ")
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
