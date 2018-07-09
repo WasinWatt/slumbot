@@ -64,6 +64,10 @@ func (h *Handler) lineRequestHandler() http.Handler {
 					return
 				}
 
+				if userID == "Ubc0d608534cd234c62f1746bbce7a92f" {
+					replyMessage(h.Client, replyID, "โอ้โย้โย๋ สุดยอดไปเลย!")
+				}
+
 				username := res.DisplayName
 
 				switch message := event.Message.(type) {
