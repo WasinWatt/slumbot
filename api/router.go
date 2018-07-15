@@ -59,13 +59,8 @@ func (h *Handler) lineRequestHandler() http.Handler {
 				log.Println(userID)
 				res, err := h.Client.GetProfile(userID).Do()
 				if err != nil {
-					replyMessage(h.Client, replyID, "แอดเพื่อนคุณสลัมก่อนถึงจะใช้งานได้นะ")
 					w.WriteHeader(http.StatusInternalServerError)
 					return
-				}
-
-				if userID == "Ubc0d608534cd234c62f1746bbce7a92f" {
-					replyMessage(h.Client, replyID, "โอ้โย้โย๋ สุดยอดไปเลย!")
 				}
 
 				username := res.DisplayName
