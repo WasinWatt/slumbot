@@ -210,6 +210,10 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 		}
 		replyMessage(h.Client, replyID, reply)
 
+		if words[1] == "คลองโคน" {
+			replyMessage(h.Client, replyID, "+ ฟ้าดำไปด้วยนะ")
+		}
+
 		return nil
 	}
 
@@ -251,10 +255,8 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 	if command == "จิงมั้ยคุณสลัม" || command == "จิงไหมคุนสลัม" || command == "จิงมั้ยคุนสลัม" || command == "จิงไหมคุณสลัม" {
 		if userID == "U488314d7ea2adc137d8d50629beb6a47" {
 			replyMessage(h.Client, replyID, "พูดอีกก็ถูกอีกคุณปั่น ฉลาดจิมๆ")
-		} else if userID == "U81455a6c0ae550b54ee5fe5bfa69ef3b" {
-			replyMessage(h.Client, replyID, "มั่วไปเรื่อย มึงอะ")
 		} else {
-			replyMessage(h.Client, replyID, "ไม่บอกหรอก")
+			replyMessage(h.Client, replyID, "มั่วไปเรื่อย")
 		}
 
 	}
