@@ -263,7 +263,7 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 
 	if command == "ยินดีด้วยมอส" {
 		replyMessage(h.Client, replyID, "คุณสลัมขอแสดงความยินดีกับมอสและแสดงความเสียใจกับฝ่ายหญิงด้วยจ้า ~")
-		replyImage(h.Client, replyID, "https://ibb.co/gD8mtd")
+		replyImage(h.Client, replyID, "https://drive.google.com/file/d/1SxxQ8Fomy8m7_aiok5cCizfyooQw8Dmb/view?usp=sharing")
 	}
 
 	return nil
