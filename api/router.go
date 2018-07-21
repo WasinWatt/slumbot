@@ -261,6 +261,11 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 
 	}
 
+	if command == "ยินดีด้วยมอส" {
+		replyMessage(h.Client, replyID, "คุณสลัมขอแสดงความยินดีกับมอสและแสดงความเสียใจกับฝ่ายหญิงด้วยจ้า ~")
+		replyImage(h.Client, replyID, "https://ibb.co/gD8mtd")
+	}
+
 	return nil
 }
 
@@ -321,4 +326,8 @@ func replySticker(client *linebot.Client, replyID string, packageID string, stic
 
 func replyMessage(client *linebot.Client, replyID string, message string) {
 	client.PushMessage(replyID, linebot.NewTextMessage(message)).Do()
+}
+
+func replyImage(client *linebot.Client, replyID string, url string) {
+	client.PushMessage(replyID, linebot.NewImageMessage(url, url)).Do()
 }
