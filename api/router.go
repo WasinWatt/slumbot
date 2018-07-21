@@ -263,7 +263,7 @@ func (h *Handler) handleTextMessage(message *linebot.TextMessage, replyID string
 
 	if command == "ยินดีด้วยมอส" {
 		replyMessage(h.Client, replyID, "คุณสลัมขอแสดงความยินดีกับมอสและแสดงความเสียใจกับฝ่ายหญิงด้วยจ้า ~")
-		replyImage(h.Client, replyID, "https://drive.google.com/file/d/1SxxQ8Fomy8m7_aiok5cCizfyooQw8Dmb/view?usp=sharing")
+		replyImage(h.Client, replyID, "https://preview.ibb.co/dOOamy/Screen_Shot_2561_07_21_at_15_02_05.png", "https://thumb.ibb.co/gD8mtd/Screen_Shot_2561_07_21_at_15_02_05.png")
 	}
 
 	return nil
@@ -328,6 +328,6 @@ func replyMessage(client *linebot.Client, replyID string, message string) {
 	client.PushMessage(replyID, linebot.NewTextMessage(message)).Do()
 }
 
-func replyImage(client *linebot.Client, replyID string, url string) {
-	client.PushMessage(replyID, linebot.NewImageMessage(url, url)).Do()
+func replyImage(client *linebot.Client, replyID string, fullURL string, prevURL string) {
+	client.PushMessage(replyID, linebot.NewImageMessage(fullURL, prevURL)).Do()
 }
