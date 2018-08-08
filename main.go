@@ -61,7 +61,7 @@ func main() {
 
 	addr := os.Getenv("PORT")
 	if addr == "" {
-		addr = "8080"
+		addr = "5000"
 	}
 
 	server := &http.Server{
